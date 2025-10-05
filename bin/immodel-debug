@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# Fail on command failure, undefined variables, and piped command
-# failures, get the package directory
-set -euo pipefail
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-
-DEBUG=* exec ${DIR}/immodel "$@"
