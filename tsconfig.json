@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "jsx": "preserve",
+    "paths": {},
+    "strict": true,
+    "target": "esnext",
+    "baseUrl": ".",
+    "tsBuildInfoFile": "./build/tmp/tsconfig.app.tsbuildinfo",
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "esModuleInterop": true,
+    "noEmit": true,
+    "exactOptionalPropertyTypes": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUncheckedSideEffectImports": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": true,
+    "isolatedModules": true
+  },
+  "include": ["src/**/*", "test/**/*"]
+}

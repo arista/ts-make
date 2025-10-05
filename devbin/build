@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Fail on command failure, undefined variables, and piped command
+# failures, get the package directory
+set -euo pipefail
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+PKGDIR=${DIR}/..
+
+cd ${PKGDIR}
+
+# Parse args
+watch_mode=false
+clean=false
+npm_clean=false
+run_tests=false
+for arg in "$@"; do
+  case "$arg" in
+    -w|--watch)
+      watch_mode=true
+      ;;
+    -c|--clean)
+      clean=true
+      ;;
+    --npm-clean)
+      npm_clean=true
+      ;;
+  esac
+done
+
+if [ "$clean" = true ]; then
+    echo "Clean - Removing ./build ./dist"
+    rm -rf ./build ./dist
+fi
+
+if [ "$npm_clean" = true ]; then
+    echo "Clean - rebuilding node_modules"
+    rm -rf node_modules package-lock.json
+    npm install
+fi
+
+# Compile the lib and cli files
+echo "Building lib and cli"
+# Run once synchronously to make sure the file exists for the latter build steps
+node ./esbuild.mjs
+if [ "$watch_mode" = true ]; then
+    node ./esbuild.mjs -w &
+fi
+
+# Type check
+echo "Running type check"
+if [ "$watch_mode" = true ]; then
+    npx tsc -w --preserveWatchOutput &
+else
+    npx tsc
+fi
+
+# Don't exit until background processes (e.g., chokidar) exit
+wait
