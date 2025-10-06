@@ -162,7 +162,7 @@ export async function findExportFile(props: {
   const {basename} = props
   for(const e of exportFileExtensions) {
     const filename = `${basename}${e}`
-    if (fs.existsSync(filename)) {
+    if (Utils.isFile(filename)) {
       return filenameToExportFile(filename)
     }
   }
