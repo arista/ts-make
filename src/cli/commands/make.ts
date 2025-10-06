@@ -23,9 +23,15 @@ export class Command extends OC.Command {
   async run() {
     const {args, flags} = await this.parse(Command)
     const {target} = args
-    const {file} = flags
-    return await (async () => {
-      await Make.make({target})
-    })()
+    const { file } = flags
+    try {
+      return await (async () => {
+        await Make.make({ target })
+      })()
+    }
+    catch (e) {
+      console.log(e)
+      return null
+    }
   }
 }

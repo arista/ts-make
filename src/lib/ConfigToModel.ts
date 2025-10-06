@@ -100,7 +100,7 @@ class ModelBuilder {
   buildTarget(targetBuilder: TargetBuilder): M.Target {
     const buildSrc = targetBuilder.src.build
     const build = buildSrc == null ? null : this.buildBuild(targetBuilder, buildSrc)
-    return new M.Target([], build)
+    return new M.Target(targetBuilder.name, [], build)
   }
 
   buildBuild(targetBuilder: TargetBuilder, build: C.Build): M.Build {
@@ -111,10 +111,7 @@ class ModelBuilder {
   }
 
   buildESBuildTarget(targetBuilder: TargetBuilder, build: C.ESBuild): M.ESBuild {
-    const {depends} = targetBuilder
     const {source, destPrefix} = build
-    const dependsTargets = depends.map(d=>this.targetsByBuilder)
-    
     const sourceAbs = Utils.resolvePath(this.basedir, source)
     if (!Utils.isFile(sourceAbs)) {
       throw new Error(`esbuild target "${targetBuilder.name}" specifies non-existent source file "${sourceAbs}"`)
@@ -152,8 +149,7 @@ class ModelBuilder {
 
   getTargetsByName(): Map<string, M.Target> {
     const ret = new Map<string, M.Target>()
-    for(const [name, targetBuilder] of Object.entries(this.targetBuildersByName)) {
-      ret.set(name, this.findTarget(targetBuilder))
+    for(const [name, targetBuilder] of this.targetBuildersByName.entries()) {      ret.set(name, this.findTarget(targetBuilder))
     }
     return ret
   }

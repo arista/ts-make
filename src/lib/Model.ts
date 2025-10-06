@@ -9,6 +9,7 @@ export class Model {
 
 export class Target {
   constructor(
+    public name: string,
     public depends:Array<Target>,
     public build: Build|null
   ) {}
