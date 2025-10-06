@@ -12,12 +12,18 @@ export class Command extends OC.Command {
     }),
   }
   static override flags = {
+    file: OC.Flags.string({
+      char: "f",
+      description: `The config file (default is "ts-make.[json, js, cjs, mjs, ts]" in package directory)`,
+      required: false,
+    }),
   }
   static override enableJsonFlag = true
 
   async run() {
     const {args, flags} = await this.parse(Command)
     const {target} = args
+    const {file} = flags
     return await (async () => {
       await Make.make({target})
     })()

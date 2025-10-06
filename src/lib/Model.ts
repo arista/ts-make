@@ -9,16 +9,28 @@ export class Model {
 
 export class Target {
   constructor(
-    public depends:Array<Target>
+    public depends:Array<Target>,
+    public build: Build|null
   ) {}
 }
 
-export class EsBuildTarget extends Target {
+export abstract class Build {
+  visit(visitor: IBuildVisitor):void {}
+}
+
+export interface IBuildVisitor {
+  visitESBuild(build: ESBuild): void
+}
+
+export class ESBuild extends Build {
   constructor(
-    depends:Array<Target>,
     source: string,
     destPrefix: string
   ) {
-    super(depends)
+    super()
+  }
+  
+  override visit(visitor: IBuildVisitor):void {
+    visitor.visitESBuild(this)
   }
 }

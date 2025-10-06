@@ -1,6 +1,6 @@
 import "source-map-support/register.js"
 import * as OC from "@oclif/core"
-import * as ConfigLoader from "../../lib/ConfigLoader"
+import {loadConfig} from "../../lib/ConfigLoader"
 import * as Utils from "../../lib/utils/Utils"
 import {configToModel} from "../../lib/ConfigToModel"
 
@@ -28,7 +28,7 @@ export class Command extends OC.Command {
     const { file, check } = flags
     try {
       return await (async () => {
-        const config = await ConfigLoader.loadConfig({ configFile: file })
+        const config = await loadConfig({ configFile: file })
         const basedir = Utils.getProjectRoot()
         if (check) {
           const model = configToModel({config, basedir})
