@@ -17,16 +17,21 @@ export class Command extends OC.Command {
       description: `The config file (default is "ts-make.[json, js, cjs, mjs, ts]" in package directory)`,
       required: false,
     }),
+    watch: OC.Flags.boolean({
+      char: "w",
+      description: `Run in watch mode`,
+      required: false,
+    }),
   }
   static override enableJsonFlag = true
 
   async run() {
     const {args, flags} = await this.parse(Command)
     const {target} = args
-    const { file } = flags
+    const { file, watch } = flags
     try {
       return await (async () => {
-        await Make.make({ target })
+        await Make.make({ configFile: file, target, watch })
       })()
     }
     catch (e) {

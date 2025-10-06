@@ -4,6 +4,7 @@ export const ESBuildSchema = z.object({
   type: z.literal("esbuild"),
   source: z.string(),
   destPrefix: z.string(),
+  metafile: z.boolean().optional().nullable(),
 }).strict()
 export type ESBuild = z.infer<typeof ESBuildSchema>
 

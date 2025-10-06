@@ -16,22 +16,23 @@ export class Target {
 }
 
 export abstract class Build {
-  visit(visitor: IBuildVisitor):void {}
+  async visit(visitor: IBuildVisitor):Promise<void> {}
 }
 
 export interface IBuildVisitor {
-  visitESBuild(build: ESBuild): void
+  visitESBuild(build: ESBuild): Promise<void>
 }
 
 export class ESBuild extends Build {
   constructor(
-    source: string,
-    destPrefix: string
+    public source: string,
+    public destPrefix: string,
+    public metafile: boolean
   ) {
     super()
   }
   
-  override visit(visitor: IBuildVisitor):void {
+  override async visit(visitor: IBuildVisitor):Promise<void> {
     visitor.visitESBuild(this)
   }
 }

@@ -111,7 +111,7 @@ class ModelBuilder {
   }
 
   buildESBuildTarget(targetBuilder: TargetBuilder, build: C.ESBuild): M.ESBuild {
-    const {source, destPrefix} = build
+    const {source, destPrefix, metafile} = build
     const sourceAbs = Utils.resolvePath(this.basedir, source)
     if (!Utils.isFile(sourceAbs)) {
       throw new Error(`esbuild target "${targetBuilder.name}" specifies non-existent source file "${sourceAbs}"`)
@@ -120,7 +120,8 @@ class ModelBuilder {
     const destPrefixAbs = Utils.resolvePath(this.basedir, destPrefix)
     return new M.ESBuild(
       sourceAbs,
-      destPrefixAbs
+      destPrefixAbs,
+      metafile ?? false
     )
   }
 
