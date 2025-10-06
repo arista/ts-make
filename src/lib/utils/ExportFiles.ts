@@ -16,7 +16,14 @@ export async function validateExportFromJsFile<S extends z.ZodTypeAny>(props: {
   schema: S
 }): Promise<z.infer<S>> {
   const {filename, schema} = props
-  const mod = await import(pathToFileURL(filename).href)
+  const mod = await(async ()=>{
+    try {
+      return await import(pathToFileURL(filename).href)
+    }
+    catch(e) {
+      throw new Error(`Error loading file "${filename}": ${e}`)
+    }
+  })()
   // Handle ESM "default" export or CJS "module.exports"
   const modExportP = mod.default ?? mod
   const modExport = Utils.isPromise(modExportP) ? await modExportP : modExportP
@@ -33,25 +40,29 @@ export async function validateExportFromJsFile<S extends z.ZodTypeAny>(props: {
 export async function validateExportFromTSFile<S extends z.ZodTypeAny>(props: {
   filename: string
   schema: S
-  curdir?: string|null
 }): Promise<z.infer<S>> {
-  const {filename, schema, curdir} = props
-  const projectRoot = Utils.getProjectRoot(curdir)
+  const {filename, schema} = props
+  const projectRoot = Utils.getProjectRoot()
   // Bundle to a temporary file under node_modules, so that when that file is imported, node is able to resolve any packages that the configuration file itself imported.
-  const outdir = path.join(projectRoot, "node_modules", ".esbuild")
+  const outdir = path.join(projectRoot, "node_modules", ".esbuild-tmp")
   const outname = `${path.basename(filename)}.mjs`
   const outfile = path.join(outdir, outname)
 
-  await esbuild.build({
-    entryPoints: [filename],
-    outfile,
-    bundle: true,
-    format: "esm",
-    platform: "node",
-    packages: "external",
-    sourcemap: false,
-    external: [],
-  })
+  try {
+    await esbuild.build({
+      entryPoints: [filename],
+      outfile,
+      bundle: true,
+      format: "esm",
+      platform: "node",
+      packages: "external",
+      sourcemap: false,
+      external: [],
+    })
+  }
+  catch (e) {
+    throw new Error(`Error building file ${filename}: ${e}`)
+  }    
 
   return validateExportFromJsFile({filename: outfile, schema})
 }
@@ -64,7 +75,7 @@ export async function validateExportFromJSONFile<S extends z.ZodTypeAny>(props: 
   const fileText = fs.readFileSync(filename, {encoding: "utf-8"})
   const fileJson = JSON.parse(fileText)
 
-  const parsed = schema.safeParse(fileText)
+  const parsed = schema.safeParse(fileJson)
   if (!parsed.success) {
     throw new Error(
       `Value from "${filename}" failed schema validation:\n${parsed.error.toString()}`
@@ -77,16 +88,15 @@ export async function validateExportFromJSONFile<S extends z.ZodTypeAny>(props: 
 export async function validateExportFromExportFile<S extends z.ZodTypeAny>(props: {
   file: ExportFile,
   schema: S,
-  curdir?: string|null
 }): Promise<z.infer<S>> {
-  const {file, schema, curdir} = props
+  const {file, schema} = props
   switch(file.type) {
     case "JSExportFile":
       return validateExportFromJsFile({filename: file.filename, schema})
     case "JSONExportFile":
       return validateExportFromJSONFile({filename: file.filename, schema})
     case "TSExportFile":
-      return validateExportFromTSFile({filename: file.filename, schema, curdir})
+      return validateExportFromTSFile({filename: file.filename, schema})
   }
 }
 
