@@ -134,7 +134,11 @@ class BuildVisitor implements M.IBuildVisitor {
         JSON.stringify(result.metafile, null, 2)
       )
     }
-    if (this.ctx.watch) {
+    if (!this.ctx.watch) {
+      // End immediately
+      await context.dispose()
+    }
+    else {
       this.log(`watching for changes`)
       await context.watch()
 
@@ -148,10 +152,6 @@ class BuildVisitor implements M.IBuildVisitor {
 
       // Keep the process alive with a Promise that never resolves
       await new Promise(()=>{})
-
-    }
-    else {
-      await context.dispose()
     }
   }
 }
