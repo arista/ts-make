@@ -5,6 +5,9 @@ import * as esbuild from 'esbuild'
 import fs from "node:fs"
 import {loadConfig} from "./ConfigLoader"
 import {configToModel} from "./ConfigToModel"
+import {Plugin} from "./Plugin"
+import * as GML from "./utils/GenericModuleLoader"
+
 
 export async function make(props: {
   configFile?: string|null,
