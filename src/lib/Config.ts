@@ -30,8 +30,14 @@ export type FullPlugin = z.infer<typeof FullPluginSchema>
 export const PluginSchema = z.union([z.string(), FullPluginSchema])
 export type Plugin = z.infer<typeof PluginSchema>
   
-export const ConfigSchema = z.object({
+export const MakeSpecSchema = z.object({
   plugins: z.array(PluginSchema).optional().nullable(),
   targets: z.array(TargetSchema).optional().nullable(),
 }).strict()
-export type Config = z.infer<typeof ConfigSchema>
+export type MakeSpec = z.infer<typeof MakeSpecSchema>
+
+export type ConfigFromFile = {
+  configFile: string
+  baseDir: string
+  makeSpec: MakeSpec
+}

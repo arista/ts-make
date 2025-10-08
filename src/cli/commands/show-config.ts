@@ -29,10 +29,9 @@ export class Command extends OC.Command {
     try {
       return await (async () => {
         const config = await loadConfig({ configFile: file })
-        const basedir = Utils.getProjectRoot()
         if (check) {
-          const buildCtx = new ModelBuilder.ModelBuilderContext(baseDir)
-          const model = ModelBuilder.buildModel(config, buildCtx)
+          const buildCtx = new ModelBuilder.ModelBuilderContext(config.baseDir)
+          const makeSpec = ModelBuilder.buildModel(config.makeSpec, buildCtx)
         }
         this.log(JSON.stringify(config, null, 2))
         return config

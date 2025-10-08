@@ -5,6 +5,7 @@ import * as esbuild from 'esbuild'
 import fs from "node:fs"
 import {loadConfig} from "./ConfigLoader"
 import * as ModelBuilder from "./ModelBuilder"
+import * as BuildPlan from "./BuildPlan"
 
 
 export async function make(props: {
@@ -14,75 +15,56 @@ export async function make(props: {
 }) {
   const {configFile, watch} = props
   const targetName = props.target
-  const basedir = Utils.getProjectRoot()
   const config = await ConfigLoader.loadConfig({ configFile })
-  const model = await configToModel({config, basedir})
-  const context = new MakeContext(model, watch ?? false, targetName ?? null)
-  await context.run()
+  const modelBuildCtx = new ModelBuilder.ModelBuilderContext(config.baseDir)
+  const makeSpec = await ModelBuilder.buildModel(config.makeSpec, modelBuildCtx)
+
+  const make = new Make(
+    modelBuildCtx,
+    makeSpec,
+    targetName ?? null
+  )
+
+  await make.build()
 }
 
-export class MakeContext {
+class Make {
   constructor(
-    public model: M.MakeSpec,
-    public watch: boolean,
-    public startingTargetName: string|null
+    public modelBuilderContext: ModelBuilder.ModelBuilderContext,
+    public makeSpec: M.MakeSpec,
+    public targetName: string|null,
   ) {}
 
-  getStartingTarget(targetName: string|null) {
-    if (targetName != null) {
-      const ret = this.model.targetsByName.get(targetName)
-      if (ret == null) {
-        throw new Error(`Target "${targetName}" not found`)
-      }
-      return ret
-    }
-    else {
-      // See if there's a target named "default"
-      const ret = this.model.targetsByName.get("default")
-      if (ret != null) {
-        return ret
-      }
-      else {
-        throw new Error(`No target specified and no defaultTarget, or target named "default", specified in the configuration file`)
-      }
-    }
-  }
+  async build() {
+    const buildPlan = BuildPlan.createBuildPlan(this.makeSpec, this.targetName ?? null)
 
-  async run() {
-    const startingTarget = this.getStartingTarget(this.startingTargetName)
-    const buildOrder = this.generateBuildTargetOrder(startingTarget)
-    for(const target of buildOrder) {
-      await this.buildTarget(target)
-    }
-  }
-
-  generateBuildTargetOrder(startingTarget: M.Target):Array<M.Target> {
-    // Get the full list of targets in order, then deduplicate
-    function getFullTargetTree(t: M.Target): Array<M.Target> {
-      return [...t.deps.map(d=>getFullTargetTree(d)).flat(1), t]
-    }
-    const fullTargetTree = getFullTargetTree(startingTarget)
-    const completeTargets = new Set<M.Target>()
-
-    const ret:Array<M.Target> = []
-    for(const t of fullTargetTree) {
-      if (!completeTargets.has(t)) {
-        ret.push(t)
-        completeTargets.add(t)
+    for (const buildStep of buildPlan.getBuildSteps()) {
+      // console.log(BuildPlan.buildStepToString(buildStep))
+      if (buildStep.type === "BuildTarget") {
+        await this.buildTarget(buildStep.target)
       }
     }
-    return ret
   }
 
   async buildTarget(target: M.Target) {
-    console.log(`[ts-make] target ${target.name}: starting build`)
-    // const action = target.action
-    // if (action != null) {
-    //   // FIXME - implement this
-    // }
-    console.log(`[ts-make] target ${target.name}: build complete`)
+    const {action} = target
+    if (action != null) {
+      // Run the action
+      await action.action.run(target.args)
+    }
   }
 }
+
+
+//   async buildTarget(target: M.Target) {
+//     console.log(`[ts-make] target ${target.name}: starting build`)
+//     // const action = target.action
+//     // if (action != null) {
+//     //   // FIXME - implement this
+//     // }
+//     console.log(`[ts-make] target ${target.name}: build complete`)/
+//   }
+// }
 
 // class BuildVisitor implements M.IBuildVisitor {
 //   constructor(

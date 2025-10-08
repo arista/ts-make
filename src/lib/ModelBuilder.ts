@@ -9,7 +9,7 @@ export class ModelBuilderContext {
   constructor(public baseDir:string) {}
 }
 
-export async function buildModel(config: C.Config, ctx: ModelBuilderContext): Promise<M.MakeSpec> {
+export async function buildModel(config: C.MakeSpec, ctx: ModelBuilderContext): Promise<M.MakeSpec> {
   const makeSpec = new M.MakeSpec()
   const targetConfigsByTarget = new Map<M.Target, C.Target>()
 
@@ -106,6 +106,8 @@ export async function buildModel(config: C.Config, ctx: ModelBuilderContext): Pr
       }
       return action
     })()
+
+    // FIXME - validate the target's args
     
     const target = new M.Target(name, action, targetConfig.args)
     if (makeSpec.targetsByName.has(name)) {
@@ -164,7 +166,7 @@ class ModelBuilderPluginHost implements P.PluginHost {
     public plugin: M.Plugin
   ) {}
   
-  registerAction(name: string, action: P.Action): void {
+  registerAction(name: string, action: P.Action<any>): void {
     const actionFullName = this.plugin.toFullName(name)
     const actionModel = new M.Action(name, actionFullName, action)
     const actionsByFullName = this.makeSpec.actionsByFullName

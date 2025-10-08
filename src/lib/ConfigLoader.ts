@@ -5,13 +5,23 @@ import * as ExportFiles from "./utils/ExportFiles"
 
 export async function loadConfig(props: {
   configFile?: string|null
-}): Promise<C.Config> {
+}): Promise<C.ConfigFromFile> {
   const {configFile} = props
   const exportFile = await findConfig({configFile})
-  return ExportFiles.validateExportFromExportFile({
+  const makeSpec = await ExportFiles.validateExportFromExportFile({
     file: exportFile,
-    schema: C.ConfigSchema,
+    schema: C.MakeSpecSchema,
   })
+  const filename = exportFile.filename
+  const baseDir = Utils.getProjectRoot(path.dirname(filename))
+  if (baseDir == null) {
+    throw new Error(`Configuration file "${exportFile}" is not in a node package`)
+  }
+  return {
+    configFile: filename,
+    baseDir,
+    makeSpec
+  }
 }
 
 export async function findConfig(props: {
