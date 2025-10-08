@@ -4,9 +4,7 @@ import * as M from "./Model"
 import * as esbuild from 'esbuild'
 import fs from "node:fs"
 import {loadConfig} from "./ConfigLoader"
-import {configToModel} from "./ConfigToModel"
-import {Plugin} from "./Plugin"
-import * as GML from "./utils/GenericModuleLoader"
+import * as ModelBuilder from "./ModelBuilder"
 
 
 export async function make(props: {
@@ -18,14 +16,14 @@ export async function make(props: {
   const targetName = props.target
   const basedir = Utils.getProjectRoot()
   const config = await ConfigLoader.loadConfig({ configFile })
-  const model = configToModel({config, basedir})
+  const model = await configToModel({config, basedir})
   const context = new MakeContext(model, watch ?? false, targetName ?? null)
   await context.run()
 }
 
 export class MakeContext {
   constructor(
-    public model: M.Model,
+    public model: M.MakeSpec,
     public watch: boolean,
     public startingTargetName: string|null
   ) {}

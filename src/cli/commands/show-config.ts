@@ -2,7 +2,7 @@ import "source-map-support/register.js"
 import * as OC from "@oclif/core"
 import {loadConfig} from "../../lib/ConfigLoader"
 import * as Utils from "../../lib/utils/Utils"
-import {configToModel} from "../../lib/ConfigToModel"
+import * as ModelBuilder from "../../lib/ModelBuilder"
 
 export class Command extends OC.Command {
   static override description = "Make a build target"
@@ -31,7 +31,8 @@ export class Command extends OC.Command {
         const config = await loadConfig({ configFile: file })
         const basedir = Utils.getProjectRoot()
         if (check) {
-          const model = configToModel({config, basedir})
+          const buildCtx = new ModelBuilder.ModelBuilderContext(baseDir)
+          const model = ModelBuilder.buildModel(config, buildCtx)
         }
         this.log(JSON.stringify(config, null, 2))
         return config

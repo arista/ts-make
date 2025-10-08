@@ -17,11 +17,21 @@ export const TargetSchema = z.object({
   name: z.string(),
   deps: z.union([z.string(), z.array(z.string())]).optional().nullable(),
   action: z.string().optional().nullable(),
-  with: z.any(),
+  args: z.any(),
 }).strict()
 export type Target = z.infer<typeof TargetSchema>
 
+export const FullPluginSchema = z.object({
+  name: z.string(),
+  alias: z.string().optional().nullable(),
+})
+export type FullPlugin = z.infer<typeof FullPluginSchema>
+  
+export const PluginSchema = z.union([z.string(), FullPluginSchema])
+export type Plugin = z.infer<typeof PluginSchema>
+  
 export const ConfigSchema = z.object({
+  plugins: z.array(PluginSchema).optional().nullable(),
   targets: z.array(TargetSchema).optional().nullable(),
 }).strict()
 export type Config = z.infer<typeof ConfigSchema>
