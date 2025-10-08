@@ -6,7 +6,7 @@ import fs from "node:fs"
 import {loadConfig} from "./ConfigLoader"
 import * as ModelBuilder from "./ModelBuilder"
 import * as BuildPlan from "./BuildPlan"
-
+import * as P from "./Plugin"
 
 export async function make(props: {
   configFile?: string|null,
@@ -49,10 +49,15 @@ class Make {
   async buildTarget(target: M.Target) {
     const {action} = target
     if (action != null) {
+      const ctx = new MakeActionContext()
+
       // Run the action
-      await action.action.run(target.args)
+      await action.action.run(target.args, ctx)
     }
   }
+}
+
+class MakeActionContext implements P.ActionContext {
 }
 
 

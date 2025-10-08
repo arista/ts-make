@@ -5,5 +5,8 @@ export interface PluginHost {
 }
 
 export interface Action<T> {
-  run<T>(args: T):Promise<void>
+  run<T>(args: T, ctx: ActionContext):Promise<void>
+}
+
+export interface ActionContext {
 }

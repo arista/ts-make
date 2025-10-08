@@ -42,7 +42,7 @@ export async function validateExportFromTSFile<S extends z.ZodTypeAny>(props: {
   schema: S
 }): Promise<z.infer<S>> {
   const {filename, schema} = props
-  const projectRoot = Utils.getProjectRoot()
+  const projectRoot = Utils.getProjectRoot(path.dirname(filename))
   // Bundle to a temporary file under node_modules, so that when that file is imported, node is able to resolve any packages that the configuration file itself imported.
   const outdir = path.join(projectRoot, "node_modules", ".esbuild-tmp")
   const outname = `${path.basename(filename)}.mjs`
