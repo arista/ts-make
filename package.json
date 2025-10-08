@@ -12,7 +12,8 @@
   ],
   "exports": {
     "./cli": "./dist/cli/cli.es.js",
-    "./lib": "./dist/lib/lib.es.js"
+    "./lib": "./dist/lib/lib.es.js",
+    "./plugins-esbuild": "./dist/plugins/esbuild.es.js"
   },
   "bin": {
     "ts-make": "bin/ts-make",

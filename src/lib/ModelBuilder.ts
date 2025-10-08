@@ -2,6 +2,7 @@ import * as C from "./Config"
 import * as M from "./Model"
 import * as GML from "./utils/GenericModuleLoader"
 import * as P from "./Plugin"
+import * as BuiltInPlugins from "./plugins/BuiltInPlugins"
 
 export class ModelBuilderContext {
   pluginLoaderCache = new Map<string, Promise<P.Plugin>>()
@@ -23,34 +24,37 @@ export async function buildModel(config: C.MakeSpec, ctx: ModelBuilderContext): 
   }
 
   function addPlugins() {
+    // Add the built-in plugins
+    const builtInPluginHost = new ModelBuilderBuiltInPluginHost(makeSpec)
+    BuiltInPlugins.registerBuiltInPlugins(builtInPluginHost)
+    
     // Add the specified plugins
     for(const pluginConfig of (config.plugins ?? [])) {
-      addPlugin(pluginConfig, false)
+      addPlugin(pluginConfig)
     }
-
-    // FIXME - how to add the built-in plugins
   }
 
-  function addPlugin(c: C.Plugin, builtIn: boolean) {
+  function addPlugin(c: C.Plugin) {
     if (typeof c === "string") {
-      makeSpec.plugins.push(new M.Plugin(c, builtIn, null))
+      makeSpec.plugins.push(new M.Plugin(c, false, null, null))
     }
     else {
-      makeSpec.plugins.push(new M.Plugin(c.name, builtIn, c.alias ?? null))
+      makeSpec.plugins.push(new M.Plugin(c.name, false, c.alias ?? null, null))
     }
   }
   
   async function loadPlugins() {
     // Load the plugins in parallel
-    const plugins = makeSpec.plugins
+    const plugins = makeSpec.plugins.filter(p=>p.plugin == null)
     const pluginNames = plugins.map(b=>b.name)
     const baseDir = ctx.baseDir
     const toInstance = (mod: unknown, spec: string, url: string):P.Plugin => {
-      if (typeof mod !== "function") {
+      const modDefault = (mod as any).default
+      if (modDefault == null || typeof modDefault !== "function") {
         throw new Error(`Plugin "${spec}" must export a default function of type "(host: PluginHost)=>Promise<void>"`)
       }
       else {
-        return mod as P.Plugin
+        return modDefault as P.Plugin
       }
     }
     const opts:GML.LoadManyOptions<P.Plugin> = {
@@ -107,6 +111,18 @@ export async function buildModel(config: C.MakeSpec, ctx: ModelBuilderContext): 
       return action
     })()
 
+    // Validate the target's args
+    if (action != null) {
+      const argsSchema = action.action.argsSchema
+      if (argsSchema != null) {
+        const parsed = argsSchema.safeParse(targetConfig.args)
+        if (!parsed.success) {
+          throw new Error(
+            `Args for target "${name}" failed schema validation for action "${targetConfig.action}":\n${parsed.error.toString()}`
+          );
+        }
+      }
+    }
     // FIXME - validate the target's args
     
     const target = new M.Target(name, action, targetConfig.args)
@@ -175,5 +191,13 @@ class ModelBuilderPluginHost implements P.PluginHost {
     }
     this.makeSpec.actions.push(actionModel)
     actionsByFullName.set(actionFullName, actionModel)
+  }
+}
+
+class ModelBuilderBuiltInPluginHost implements BuiltInPlugins.BuiltInPluginHost {
+  constructor(public makeSpec: M.MakeSpec) {}
+
+  registerBuiltInPlugin(name: string, plugin: P.Plugin):void {
+    this.makeSpec.plugins.push(new M.Plugin(name, true, null, plugin))
   }
 }

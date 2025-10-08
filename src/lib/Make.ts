@@ -22,7 +22,8 @@ export async function make(props: {
   const make = new Make(
     modelBuildCtx,
     makeSpec,
-    targetName ?? null
+    targetName ?? null,
+    watch ?? false,
   )
 
   await make.build()
@@ -33,6 +34,7 @@ class Make {
     public modelBuilderContext: ModelBuilder.ModelBuilderContext,
     public makeSpec: M.MakeSpec,
     public targetName: string|null,
+    public watch: boolean,
   ) {}
 
   async build() {
@@ -49,7 +51,9 @@ class Make {
   async buildTarget(target: M.Target) {
     const {action} = target
     if (action != null) {
-      const ctx = new MakeActionContext()
+      const ctx = new MakeActionContext(
+        this.watch
+      )
 
       // Run the action
       await action.action.run(target.args, ctx)
@@ -58,6 +62,12 @@ class Make {
 }
 
 class MakeActionContext implements P.ActionContext {
+  constructor(public watch:boolean) {}
+  
+  log(str:string):void {
+    // FIXME - better logging
+    console.log(`${str}`)
+  }
 }
 
 

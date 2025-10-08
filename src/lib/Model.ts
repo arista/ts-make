@@ -32,8 +32,13 @@ export class Plugin {
   constructor(
     public name: string,
     public builtIn: boolean,
-    public alias: string|null
-  ) {}
+    public alias: string|null,
+    plugin: P.Plugin|null
+  ) {
+    if (plugin != null) {
+      this.plugin = plugin
+    }
+  }
 
   // Qualifies a name exported by the plugin (action names, for example).  Built-in plugins don't add a prefix, while non-built-in plugins prefix with "{plugin alias or name}:"
   toFullName(name: string): string {
