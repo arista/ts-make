@@ -29,7 +29,7 @@ export class EsbuildAction implements P.Action<EsbuildActionArgs> {
       outfile: `${destPrefix}.es.js`,
       platform: "node",
       target: "node18",
-      packages: "bundle",// FIXME - different for lambdas - isLambda ? "bundle" : "external",
+      packages: "external",// FIXME - different for lambdas - isLambda ? "bundle" : "external",
       external: [], // FIXME - different for lambdas - isLambda ? ["aws-sdk"] : [...prismaExcludes],
       sourcemap: true,
       format: "esm",

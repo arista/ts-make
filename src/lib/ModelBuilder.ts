@@ -146,7 +146,8 @@ export async function buildModel(config: C.MakeSpec, ctx: ModelBuilderContext): 
     if (targetConfig == null) {
       throw new Error(`Assertion failed: targetConfig is null`)
     }
-    for(const dep of (targetConfig.deps ?? [])) {
+    const targetConfigDeps = typeof targetConfig.deps === "string" ? [targetConfig.deps] : (targetConfig.deps ?? [])
+    for(const dep of targetConfigDeps) {
       const depTarget = makeSpec.targetsByName.get(dep)
       if (depTarget == null) {
         throw new Error(`Target "${target.name}" references non-existent dep target "${dep}"`)
